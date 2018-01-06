@@ -44,7 +44,7 @@ class ViewController: UIViewController {
         imgView.image = #imageLiteral(resourceName: "bg-sunny-cloud-4")
         return imgView
     }()
-
+    
     let header: UILabel = {
         let label: UILabel = UILabel()
         label.backgroundColor = UIColor.clear
@@ -74,35 +74,16 @@ class ViewController: UIViewController {
         btn.backgroundColor = UIColor.green
         btn.setTitle("Log In", for: .normal)
         btn.setTitleColor(UIColor.brown, for: .normal)
+        btn.tag = -1
+        btn.addTarget(self, action: #selector(moveClouds(button:)), for: UIControlEvents.touchUpInside)
         return btn
     }()
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        UIView.animate(withDuration: 0.8) {
-            self.header.center.x += self.view.bounds.width
-        }
-
-        UIView.animate(withDuration: 0.5) {
-            self.usernameTextField.center.x += self.view.bounds.width
-        }
-
-        UIView.animate(withDuration: 0.3) {
-            self.passwordTextField.center.x += self.view.bounds.width
-        }
-    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.addSubviews(backgroundImageView, cloudImageView1, cloudImageView2, cloudImageView3, cloudImageView4)
-        
-      //  view.backgroundColor = UIColor.cyan
-        view.addSubview(header)
-        view.addSubview(usernameTextField)
-        view.addSubview(passwordTextField)
-        view.addSubview(loginButton)
+        view.addSubviews(header, usernameTextField, passwordTextField,loginButton)
         
         usernameTextField.layer.cornerRadius = 5
         usernameTextField.clipsToBounds = true
@@ -113,7 +94,7 @@ class ViewController: UIViewController {
         loginButton.layer.cornerRadius = 5
         loginButton.clipsToBounds = true
     }
-
+    
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         
@@ -130,13 +111,13 @@ class ViewController: UIViewController {
         let originCloud2: CGPoint = CGPoint(x: view.center.x - sizeCloud.width, y: 2 * view.bounds.height/3)
         let originCloud3: CGPoint = CGPoint(x: view.bounds.width/50, y: view.bounds.height/30)
         let originCloud4: CGPoint = CGPoint(x: view.bounds.width - sizeCloud.width, y: view.center.y + view.bounds.height/6)
-
+        
         backgroundImageView.frame = view.bounds
         cloudImageView1.frame = CGRect(origin: originCloud1, size: sizeCloud)
         cloudImageView2.frame = CGRect(origin: originCloud2, size: sizeCloud)
         cloudImageView3.frame = CGRect(origin: originCloud3, size: sizeCloud)
         cloudImageView4.frame = CGRect(origin: originCloud4, size: sizeCloud)
-
+        
         header.frame = CGRect(x: xOffset, y: yOffset, width: width, height: heightBig)
         yOffset += header.frame.height + gap
         
@@ -152,16 +133,105 @@ class ViewController: UIViewController {
         header.center.x  -= view.bounds.width
         usernameTextField.center.x -= view.bounds.width
         passwordTextField.center.x -= view.bounds.width
-
     }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        animateSubviews()
+    }
+    
+    func animateSubviews() {
+        UIView.animate(withDuration: 0.8) {
+            self.header.center.x += self.view.bounds.width
+        }
+        UIView.animate(withDuration: 0.5) {
+            self.usernameTextField.center.x += self.view.bounds.width
+        }
+        UIView.animate(withDuration: 0.3) {
+            self.passwordTextField.center.x += self.view.bounds.width
+        }
+    }
+    
+    @objc func moveClouds(button: UIButton) {
+        
+        let isOnRepeat: () -> Bool = {
+            return (button.tag % 2) == 0
+        }
+        
+        if (button.tag % 2) != 0 {
+            cloudImageView1.moveEdgeToEdge(duration: 2, direction: .right, isOnRepeat: isOnRepeat)
+            cloudImageView2.moveEdgeToEdge(duration: 3, direction: .left, isOnRepeat: isOnRepeat)
+            cloudImageView3.moveEdgeToEdge(duration: 5, direction: .left, isOnRepeat: isOnRepeat)
+            cloudImageView4.moveEdgeToEdge(duration: 4, direction: .right, isOnRepeat: isOnRepeat)
+        }
+        else {
+            [cloudImageView1, cloudImageView2, cloudImageView3, cloudImageView4].forEach {
+                $0.layer.pause()
+                $0.frame = $0.layer.presentation()!.frame
+                print($0.layer.presentation()!.frame)
+                //$0.layer.removeAllAnimations()
+            }
+        }
+        
+        button.tag += 1
+        
+    }
+    
+}
 
+enum Direction {
+    case right
+    case left
 }
 
 extension UIView {
+    
+    var animationFrame: CGRect? {
+        return self.layer.presentation()?.frame
+    }
+    
     func addSubviews(_ views: UIView...) {
         views.forEach { (view) in
             self.addSubview(view)
         }
+    }
+    
+    func moveEdgeToEdge(duration: TimeInterval, direction: Direction, isOnRepeat: @escaping () -> Bool ) {
+        
+        guard let superview = self.superview else { return }
+        
+        UIView.animate(withDuration: duration, delay: 0, options: .curveLinear, animations: {
+            self.frame.origin.x = direction == .right ? superview.bounds.width : (-self.frame.width)
+        }, completion: { (true) in
+            if direction == .right {
+                self.frame.origin.x = (superview.bounds.origin.x - self.frame.width)
+            }
+            else {
+                self.frame.origin.x = superview.bounds.width
+            }
+            if isOnRepeat() {
+                self.moveEdgeToEdge(duration: duration, direction: direction, isOnRepeat: isOnRepeat)
+            }
+        })
+    }
+}
+
+extension CALayer {
+    
+    func pause() {
+        let pausedTime: CFTimeInterval = convertTime(CACurrentMediaTime(), from: nil)
+        speed = 0.0
+        timeOffset = pausedTime
+    }
+    
+    func resume() {
+        let pausedTime: CFTimeInterval = timeOffset
+        speed = 1.0
+        timeOffset = 0.0
+        beginTime = 0.0
+        let timeSincePause: CFTimeInterval = convertTime(CACurrentMediaTime(), from: nil) - pausedTime
+        beginTime = timeSincePause
     }
 }
 
