@@ -59,6 +59,7 @@ class ViewController: UIViewController {
         let txtField: UITextField = UITextField()
         txtField.placeholder = " Username"
         txtField.backgroundColor = UIColor.white
+        txtField.addTarget(self, action: #selector(shakeThingsUp(textField:)), for: UIControlEvents.allEditingEvents)
         return txtField
     }()
     
@@ -66,6 +67,7 @@ class ViewController: UIViewController {
         let txtField: UITextField = UITextField()
         txtField.placeholder = " Password"
         txtField.backgroundColor = UIColor.white
+        txtField.addTarget(self, action: #selector(shakeThingsUp(textField:)), for: UIControlEvents.allEditingEvents)
         return txtField
     }()
     
@@ -153,23 +155,37 @@ class ViewController: UIViewController {
         }
     }
     
+    @objc func shakeThingsUp(textField: UITextField) {
+        textField.shake()
+    }
+    
     @objc func moveClouds(button: UIButton) {
         
-        let isOnRepeat: () -> Bool = {
-            return (button.tag % 2) == 0
-        }
+//        let isOnRepeat: () -> Bool = {
+//            return (button.tag % 2) == 0
+//        }
         
-        if (button.tag % 2) != 0 {
-            cloudImageView1.moveEdgeToEdge(duration: 2, direction: .right, isOnRepeat: isOnRepeat)
-            cloudImageView2.moveEdgeToEdge(duration: 3, direction: .left, isOnRepeat: isOnRepeat)
-            cloudImageView3.moveEdgeToEdge(duration: 5, direction: .left, isOnRepeat: isOnRepeat)
-            cloudImageView4.moveEdgeToEdge(duration: 4, direction: .right, isOnRepeat: isOnRepeat)
+        if  button.tag == -1 {
+            cloudImageView1.moveEdgeToEdge(duration: 2, direction: .right)
+            cloudImageView2.moveEdgeToEdge(duration: 3, direction: .left)
+            cloudImageView3.moveEdgeToEdge(duration: 5, direction: .left)
+            cloudImageView4.moveEdgeToEdge(duration: 4, direction: .right)
+            
+//            cloudImageView1.moveEdgeToEdge(duration: 2, direction: .right, isOnRepeat: isOnRepeat)
+//            cloudImageView2.moveEdgeToEdge(duration: 3, direction: .left, isOnRepeat: isOnRepeat)
+//            cloudImageView3.moveEdgeToEdge(duration: 5, direction: .left, isOnRepeat: isOnRepeat)
+//            cloudImageView4.moveEdgeToEdge(duration: 4, direction: .right, isOnRepeat: isOnRepeat)
+        }
+        else if (button.tag % 2) != 0 {
+             [cloudImageView1, cloudImageView2, cloudImageView3, cloudImageView4].forEach {
+                $0.layer.resume()
+            }
         }
         else {
             [cloudImageView1, cloudImageView2, cloudImageView3, cloudImageView4].forEach {
                 $0.layer.pause()
-                $0.frame = $0.layer.presentation()!.frame
-                print($0.layer.presentation()!.frame)
+                // $0.frame = $0.layer.presentation()!.frame
+                //print($0.layer.presentation()!.frame)
                 //$0.layer.removeAllAnimations()
             }
         }
@@ -197,7 +213,18 @@ extension UIView {
         }
     }
     
-    func moveEdgeToEdge(duration: TimeInterval, direction: Direction, isOnRepeat: @escaping () -> Bool ) {
+    func shake() {
+        let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
+        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
+        animation.duration = 0.6
+        //animation.repeatCount = 10
+        animation.values = [-20.0, 20.0, -20.0, 20.0, -10.0, 10.0, -5.0, 5.0, 0.0 ]
+        layer.add(animation, forKey: "shake")
+    }
+    
+//    func moveEdgeToEdge(duration: TimeInterval, direction: Direction, isOnRepeat: @escaping () -> Bool )
+    
+        func moveEdgeToEdge(duration: TimeInterval, direction: Direction) {
         
         guard let superview = self.superview else { return }
         
@@ -210,9 +237,8 @@ extension UIView {
             else {
                 self.frame.origin.x = superview.bounds.width
             }
-            if isOnRepeat() {
-                self.moveEdgeToEdge(duration: duration, direction: direction, isOnRepeat: isOnRepeat)
-            }
+            self.moveEdgeToEdge(duration: duration, direction: direction)
+            // if isOnRepeat() { self.moveEdgeToEdge(duration: duration, direction: direction, isOnRepeat: isOnRepeat) }
         })
     }
 }
