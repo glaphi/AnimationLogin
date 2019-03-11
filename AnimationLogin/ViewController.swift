@@ -59,7 +59,7 @@ class ViewController: UIViewController {
         let txtField: UITextField = UITextField()
         txtField.placeholder = " Username"
         txtField.backgroundColor = UIColor.white
-        txtField.addTarget(self, action: #selector(shakeThingsUp(textField:)), for: UIControlEvents.allEditingEvents)
+        txtField.addTarget(self, action: #selector(shakeThingsUp(textField:)), for: UIControl.Event.allEditingEvents)
         return txtField
     }()
     
@@ -67,7 +67,7 @@ class ViewController: UIViewController {
         let txtField: UITextField = UITextField()
         txtField.placeholder = " Password"
         txtField.backgroundColor = UIColor.white
-        txtField.addTarget(self, action: #selector(shakeThingsUp(textField:)), for: UIControlEvents.allEditingEvents)
+        txtField.addTarget(self, action: #selector(shakeThingsUp(textField:)), for: UIControl.Event.allEditingEvents)
         return txtField
     }()
     
@@ -77,7 +77,7 @@ class ViewController: UIViewController {
         btn.setTitle("Log In", for: .normal)
         btn.setTitleColor(UIColor.brown, for: .normal)
         btn.tag = -1
-        btn.addTarget(self, action: #selector(moveClouds(button:)), for: UIControlEvents.touchUpInside)
+        btn.addTarget(self, action: #selector(moveClouds(button:)), for: UIControl.Event.touchUpInside)
         return btn
     }()
     
@@ -215,7 +215,7 @@ extension UIView {
     
     func shake() {
         let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
-        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
+        animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear)
         animation.duration = 0.6
         //animation.repeatCount = 10
         animation.values = [-20.0, 20.0, -20.0, 20.0, -10.0, 10.0, -5.0, 5.0, 0.0 ]
